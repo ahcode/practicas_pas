@@ -119,6 +119,7 @@ int imprimirTodo(){
 		}else{
 			printf("Group file can not be opened\n");
 		}
+		fclose(f);
 		return 1;
 	}
 	while (fgets(cad,51,f)!=NULL){
@@ -127,6 +128,7 @@ int imprimirTodo(){
 		printf("\n");
 	}
 	fclose(f);
+	return 0;
 }
 
 void noExiste(){
