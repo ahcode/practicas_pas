@@ -7,6 +7,7 @@
 #include <time.h>
 #include <errno.h>
 #include "common.h"
+#include <regex.h>
 
 //Prototipo de funcionn
 void funcionLog(char *);
@@ -16,23 +17,38 @@ FILE *fLog = NULL;
 
 int main(int argc, char **argv)
 {
-	// Cola del servidor
-	mqd_t mq_server;
-	// Atributos de la cola
+	// Declaración de colas
+	mqd_t mq_to_server;
+  mqd_t mq_to_client;
+	// Atributos de las colas
 	struct mq_attr attr;
 	// Buffer para intercambiar mensajes
 	char buffer[MAX_SIZE + 1];
+  //char buffer2[12];
 	// flag que indica cuando hay que parar
 	int must_stop = 0;
+  // Regex
+  regex_t re;
+  regmatch_t pm;
 	// Inicializar los atributos de la cola
 	attr.mq_maxmsg = 10;        // Maximo número de mensajes
 	attr.mq_msgsize = MAX_SIZE; // Maximo tamaño de un mensaje
 
-	// Crear la cola de mensajes del servidor
-	mq_server = mq_open(SERVER_QUEUE, O_CREAT | O_RDONLY, 0644, &attr);
-	if(mq_server == (mqd_t)-1 ){
-   	perror("Error al abrir la cola del servidor");
+  // Inicializar regex
+  if (regcomp(&re,"ola",0)!=0){
+      printf("Error al inicializar la expresión regular");
       exit(-1);
+  }
+	// Crear la cola de mensajes del servidor
+	mq_to_server = mq_open(SERVER_QUEUE, O_CREAT | O_RDONLY, 0644, &attr);
+  if(mq_to_server == (mqd_t)-1 ){
+   	perror("Error al abrir la cola del servidor");
+    exit(-1);
+	}
+  mq_to_client = mq_open(CLIENT_QUEUE, O_CREAT | O_WRONLY, 0644, &attr);
+  if(mq_to_client == (mqd_t)-1 ){
+   	perror("Error al abrir la cola del cliente");
+    exit(-1);
 	}
 
 	do {
@@ -40,8 +56,8 @@ int main(int argc, char **argv)
 		ssize_t bytes_read;
 
 		// Recibir el mensaje
-		bytes_read = mq_receive(mq_server, buffer, MAX_SIZE, NULL);
-		// Comprar que la recepción es correcta (bytes leidos no son negativos)
+		bytes_read = mq_receive(mq_to_server, buffer, MAX_SIZE, NULL);
+		// Comprobar que la recepción es correcta (bytes leidos no son negativos)
 		if(bytes_read < 0){
 			perror("Error al recibir el mensaje");
 			exit(-1);
@@ -52,21 +68,44 @@ int main(int argc, char **argv)
 		// Comprobar el fin del bucle
 		if (strncmp(buffer, MSG_STOP, strlen(MSG_STOP))==0)
 			must_stop = 1;
-		else
+		else{
 			printf("Recibido el mensaje: %s\n", buffer);
-
+      if(regexec(&re, buffer, 1, &pm, 0)==0){
+        //Empareja
+        if(mq_send(mq_to_client, "Empareja", MAX_SIZE, 0) != 0){
+    			perror("Error al enviar el mensaje");
+    			exit(-1);
+    		}
+      }else{
+        //No Empareja
+        if(mq_send(mq_to_client, "No Empareja", MAX_SIZE, 0) != 0){
+    			perror("Error al enviar el mensaje");
+    			exit(-1);
+    		}
+      }
+    }
 	// Iterar hasta que llegue el código de salida
 	} while (!must_stop);
 
+  // Liberar regex
+  regfree(&re);
+
 	// Cerrar la cola del servidor
-	if(mq_close(mq_server) == (mqd_t)-1){
+	if(mq_close(mq_to_server) == (mqd_t)-1){
 		perror("Error al cerrar la cola del servidor");
 		exit(-1);
 	}
-
+  if(mq_close(mq_to_client) == (mqd_t)-1){
+    perror("Error al cerrar la cola del cliente");
+    exit(-1);
+  }
 	// Eliminar la cola del servidor
 	if(mq_unlink(SERVER_QUEUE) == (mqd_t)-1){
 		perror("Error al eliminar la cola del servidor");
+		exit(-1);
+	}
+  if(mq_unlink(CLIENT_QUEUE) == (mqd_t)-1){
+		perror("Error al eliminar la cola del cliente");
 		exit(-1);
 	}
 

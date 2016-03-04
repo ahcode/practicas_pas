@@ -16,18 +16,25 @@ FILE *fLog = NULL;
 int main(int argc, char **argv)
 {
 	// Cola del servidor
-	mqd_t mq_server;
+	mqd_t mq_to_server;
+  mqd_t mq_to_client;
 	// Buffer para intercambiar mensajes
 	char buffer[MAX_SIZE];
+  char buffer2[MAX_SIZE+1];
 	// Abrir la cola del servidor
-	mq_server = mq_open(SERVER_QUEUE, O_WRONLY);
-	if(mq_server == (mqd_t)-1 ){
+	mq_to_server = mq_open(SERVER_QUEUE, O_WRONLY);
+	if(mq_to_server == (mqd_t)-1 ){
         	perror("Error al abrir la cola del servidor");
+       		exit(-1);
+	}
+  mq_to_client = mq_open(CLIENT_QUEUE, O_RDONLY);
+	if(mq_to_client == (mqd_t)-1 ){
+        	perror("Error al abrir la cola del cliente");
        		exit(-1);
 	}
 
 	printf("Mandando mensajes al servidor (escribir \"%s\" para parar):\n", MSG_STOP);
-	do {
+	while(1) {
 		printf("> ");
 		fflush(stdout);                  // Limpiar buffer de salida
 		memset(buffer, 0, MAX_SIZE);     // Poner a 0 el buffer
@@ -35,16 +42,35 @@ int main(int argc, char **argv)
 		buffer[strlen(buffer)-1] = '\0'; // Descartar el salto de línea
 
 		// Enviar y comprobar si el mensaje se manda
-		if(mq_send(mq_server, buffer, MAX_SIZE, 0) != 0){
+		if(mq_send(mq_to_server, buffer, MAX_SIZE, 0) != 0){
 			perror("Error al enviar el mensaje");
 			exit(-1);
 		}
-	// Iterar hasta escribir el código de salida
-	} while (strncmp(buffer, MSG_STOP, strlen(MSG_STOP)));
+    // Comprobar salida
+    if(!strncmp(buffer, MSG_STOP, strlen(MSG_STOP)))
+      break;
+    // Número de bytes leidos
+		ssize_t bytes_read;
+    // Recibir el mensaje
+    bytes_read = mq_receive(mq_to_client, buffer2, MAX_SIZE, NULL);
+    // Comprobar que la recepción es correcta (bytes leidos no son negativos)
+		if(bytes_read < 0){
+			perror("Error al recibir el mensaje");
+			exit(-1);
+		}
+    // Cerrar la cadena
+		buffer2[bytes_read] = '\0';
+    // Imprimir respuesta
+    printf("%s\n",buffer2);
+	}
 
 	// Cerrar la cola del servidor
-	if(mq_close(mq_server) == (mqd_t)-1){
+	if(mq_close(mq_to_server) == (mqd_t)-1){
 		perror("Error al cerrar la cola del servidor");
+		exit(-1);
+	}
+  if(mq_close(mq_to_client) == (mqd_t)-1){
+		perror("Error al cerrar la cola del cliente");
 		exit(-1);
 	}
 	return 0;
