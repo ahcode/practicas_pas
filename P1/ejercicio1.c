@@ -45,7 +45,7 @@ int main (int argc, char **argv) {
 					fprintf (stderr, "Opción desconocida '-%c'.\n", optopt);
 				else
 					fprintf (stderr, "Caracter `\\x%x'.\n", optopt);
-				return 1;
+				exit(-1);
 			default:
 				abort ();
 		}
@@ -62,11 +62,11 @@ int main (int argc, char **argv) {
 	//Errores en las opciones
 	if (nvalue!=NULL && uvalue!=NULL){
 		printf("No se puede utilizar la opción -u y -n a la vez.\n");
-		return 1;
+		exit(-1);
 	}
 	if (eflag && sflag){
 		printf("No se puede utilizar la opción -e y -s a la vez.\n");
-		return 1;
+		exit(-1);
 	}
 
 	//Asignar nombre de usuario
@@ -74,7 +74,7 @@ int main (int argc, char **argv) {
 		mostrarUsuario=1;
 		if ((nvalue = getlogin()) == NULL){
 			printf("Error al recuperar nombre de usuario.\n");
-			return 1;
+			exit(-1);
 		}
 	}
 
@@ -82,12 +82,12 @@ int main (int argc, char **argv) {
 	if (nvalue!=NULL){
 		if ((pw = getpwnam(nvalue)) == NULL){
 			fprintf(stderr, "Nombre de usuario no encontrado.\n");
-			return 1;
+			exit(-1);
 		}
 	}else{
 		if ((pw = getpwuid(atoi(uvalue))) == NULL){
 			fprintf(stderr, "ID de usuario no encontrado.\n");
-			return 1;
+			exit(-1);
 		}
 		mostrarUsuario = 1;
 	}

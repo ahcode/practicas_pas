@@ -20,7 +20,7 @@ int main(){
 		sprintf(out,"Error al crear la tubería");
 		printf("%s\n",out);
 		funcionLog(out);
-		return 1;
+		exit(-1);
 	}
 
 	switch(pid=fork()){
@@ -28,7 +28,7 @@ int main(){
 			sprintf(out,"Error en la creación del proceso hijo");
 			printf("%s\n",out);
 			funcionLog(out);
-			return 1;
+			exit(-1);
 
 		case 0:
 			sprintf(out,"[HIJO] mi PID es %d y mi PPID es %d",getpid(),getppid());

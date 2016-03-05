@@ -72,11 +72,11 @@ int main (int argc, char **argv) {
 	//Errores en las opciones
 	if (eflag && sflag){
 		printf("No se puede utilizar la opción -e y -s a la vez.\n");
-		return 1;
+		exit(-1);
 	}
 	if ((gvalue!=NULL && hflag==1)||(gvalue!=NULL && aflag==1)||(aflag==1 && hflag==1)){
 		printf("No se pueden usar las opciones indicadas a la vez.\n");
-		return 1;
+		exit(-1);
 	}
 
 	if (hflag==1){
@@ -85,13 +85,13 @@ int main (int argc, char **argv) {
 	}
 	if (aflag==1){
 		if (imprimirTodo()==1){
-			return 1;
+			exit(-1);
 		}
 		return 0;
 	}else if(gvalue!=NULL){
 		if((gr=getgrnam(gvalue))==NULL){
 			noExiste();
-			return 1;
+			exit(-1);
 		}
 	}else{
 		gr=getgrgid(getpwnam(getlogin())->pw_gid);
@@ -120,7 +120,7 @@ int imprimirTodo(){
 			printf("Group file can not be opened\n");
 		}
 		fclose(f);
-		return 1;
+		exit(-1);
 	}
 	while (fgets(cad,51,f)!=NULL){
 		*(strchr(cad,':'))='\0';
