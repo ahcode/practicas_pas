@@ -1,0 +1,34 @@
+//INICIO DE LA EJECUCIÓN//
+[2016-03-05, 11:57:07] ==> [PADRE] mi PID es 2614 y el PID de mi hijo es 2615
+  //El padre inicia su ejecución
+[2016-03-05, 11:57:07] ==> [PADRE] escribimos el número aleatorio 3774 en la tubería
+  //El padre introduce un número en la cola. Cola: [3774]
+[2016-03-05, 11:57:07] ==> [HIJO] mi PID es 2615 y mi PPID es 2614
+  //El hijo inicia su ejecución
+[2016-03-05, 11:57:07] ==> [HIJO] leemos el número aleatorio 3774 de la tubería
+  //El hijo lee de la cola el número de la cola. Cola: []
+[2016-03-05, 11:57:07] ==> [PADRE] escribimos el número aleatorio 712 en la tubería
+  //El padre introduce un número en la cola. Cola: [712]
+[2016-03-05, 11:57:07] ==> [HIJO] leemos el número aleatorio 712 de la tubería
+  //El hijo lee de la cola el número de la cola. Cola: []
+[2016-03-05, 11:57:08] ==> [PADRE] escribimos el número aleatorio 3162 en la tubería
+  //El padre introduce un número en la cola. Cola: [3162]
+[2016-03-05, 11:57:08] ==> [HIJO] leemos el número aleatorio 3162 de la tubería
+  //El hijo lee de la cola el número de la cola. Cola: []
+[2016-03-05, 11:57:09] ==> [PADRE] escribimos el número aleatorio 1948 en la tubería
+  //El padre introduce un número en la cola. Cola: [1948]
+[2016-03-05, 11:57:09] ==> [HIJO] leemos el número aleatorio 1948 de la tubería
+  //El hijo lee de la cola el número de la cola. Cola: []
+[2016-03-05, 11:57:09] ==> [PADRE] escribimos el número aleatorio 20 en la tubería
+  //El padre introduce un número en la cola. Cola: [20]
+[2016-03-05, 11:57:09] ==> [HIJO] leemos el número aleatorio 20 de la tubería
+  //El hijo lee de la cola el número de la cola. Cola: []
+[2016-03-05, 11:57:09] ==> [HIJO] tubería cerrada. Salgo...
+  //El hijo cierra la tubería y finaliza su ejecución
+[2016-03-05, 11:57:10] ==> [PADRE] tubería cerrada
+  //El padre cierra la tubería
+[2016-03-05, 11:57:10] ==> Hijo PID:2615 finalizado, estado=0
+[2016-03-05, 11:57:10] ==> No hay más hijos que esperar
+[2016-03-05, 11:57:10] ==> status de errno=10, definido como No child processes
+  //El padre espera al hijo y finaliza su ejecución
+//FIN DE LA EJECUCIÓN//

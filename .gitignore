@@ -1,35 +1,10 @@
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
-
-# Ejecutables Práctica
+# Ejecutables
 ejercicio1
 ejercicio2
 ejercicio3
 ejercicio4-cliente
 ejercicio4-servidor
+
+# Ficheros log
+log-servidor.txt
+log-cliente.txt
