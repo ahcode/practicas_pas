@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <getopt.h>
 #include <regex.h>
+#include <unistd.h>
 #include "common.h"
 
 //Prototipo de funcionn
@@ -23,6 +24,10 @@ int main(int argc, char **argv)
 	// Declaración de colas
 	mqd_t mq_to_server;
   mqd_t mq_to_client;
+	// Nombre de colas
+	char *usuario;
+	char cola_server[60];
+	char cola_client[60];
 	// Atributos de las colas
 	struct mq_attr attr;
 	// Buffer para intercambiar mensajes
@@ -74,18 +79,34 @@ int main(int argc, char **argv)
 
   // Inicializar regex
   if (regcomp(&re,rvalue,0)!=0){
-      printf("Error al inicializar la expresión regular");
+      sprintf(out,"Error al inicializar la expresión regular");
+			printf("%s\n",out);
+			funcionLog(out);
       exit(-1);
   }
+
 	// Crear las colas de mensajes
-	mq_to_server = mq_open(SERVER_QUEUE, O_CREAT | O_RDONLY, 0644, &attr);
+	usuario = getlogin();
+	if (usuario == NULL){
+		sprintf(out,"Error al recuperar nombre de usuario");
+		printf("%s\n",out);
+		funcionLog(out);
+		exit(-1);
+	}
+	sprintf(cola_server,"%s-%s",SERVER_QUEUE,usuario);
+	mq_to_server = mq_open(cola_server, O_CREAT | O_RDONLY, 0644, &attr);
   if(mq_to_server == (mqd_t)-1 ){
-   	perror("Error al abrir la cola del servidor");
+		sprintf(out,"Error al abrir la cola del servidor: %s", strerror(errno));
+		printf("%s\n",out);
+		funcionLog(out);
     exit(-1);
 	}
-  mq_to_client = mq_open(CLIENT_QUEUE, O_CREAT | O_WRONLY, 0644, &attr);
+	sprintf(cola_client,"%s-%s",CLIENT_QUEUE,usuario);
+  mq_to_client = mq_open(cola_client, O_CREAT | O_WRONLY, 0644, &attr);
   if(mq_to_client == (mqd_t)-1 ){
-   	perror("Error al abrir la cola del cliente");
+   	sprintf(out,"Error al abrir la cola del cliente: %s", strerror(errno));
+		printf("%s\n",out);
+		funcionLog(out);
     exit(-1);
 	}
 
@@ -97,7 +118,9 @@ int main(int argc, char **argv)
 		bytes_read = mq_receive(mq_to_server, buffer, MAX_SIZE, NULL);
 		// Comprobar que la recepción es correcta (bytes leidos no son negativos)
 		if(bytes_read < 0){
-			perror("Error al recibir el mensaje");
+			sprintf(out,"Error al recibir el mensaje: %s", strerror(errno));
+			printf("%s\n",out);
+			funcionLog(out);
 			exit(-1);
 		}
 		// Cerrar la cadena
@@ -107,17 +130,23 @@ int main(int argc, char **argv)
 		if (strncmp(buffer, MSG_STOP, strlen(MSG_STOP))==0)
 			break;
 		else{
-			printf("Recibido el mensaje: %s\n", buffer);
+			sprintf(out,"Recibido el mensaje: %s", buffer);
+			printf("%s\n",out);
+			funcionLog(out);
       if(regexec(&re, buffer, 0, NULL, 0)==0){
         //Empareja
         if(mq_send(mq_to_client, "Empareja", MAX_SIZE, 0) != 0){
-    			perror("Error al enviar el mensaje");
+    			sprintf(out,"Error al enviar el mensaje: %s", strerror(errno));
+					printf("%s\n",out);
+					funcionLog(out);
     			exit(-1);
     		}
       }else{
         //No Empareja
         if(mq_send(mq_to_client, "No Empareja", MAX_SIZE, 0) != 0){
-    			perror("Error al enviar el mensaje");
+    			sprintf(out,"Error al enviar el mensaje: %s", strerror(errno));
+					printf("%s\n",out);
+					funcionLog(out);
     			exit(-1);
     		}
       }
@@ -130,20 +159,28 @@ int main(int argc, char **argv)
 
 	// Cerrar la cola del servidor
 	if(mq_close(mq_to_server) == (mqd_t)-1){
-		perror("Error al cerrar la cola del servidor");
+		sprintf(out,"Error al cerrar la cola del servidor: %s", strerror(errno));
+		printf("%s\n",out);
+		funcionLog(out);
 		exit(-1);
 	}
   if(mq_close(mq_to_client) == (mqd_t)-1){
-    perror("Error al cerrar la cola del cliente");
+    sprintf(out,"Error al cerrar la cola del cliente: %s", strerror(errno));
+		printf("%s\n",out);
+		funcionLog(out);
     exit(-1);
   }
 	// Eliminar la cola del servidor
-	if(mq_unlink(SERVER_QUEUE) == (mqd_t)-1){
-		perror("Error al eliminar la cola del servidor");
+	if(mq_unlink(cola_server) == (mqd_t)-1){
+		sprintf(out,"Error al eliminar la cola del servidor: %s", strerror(errno));
+		printf("%s\n",out);
+		funcionLog(out);
 		exit(-1);
 	}
-  if(mq_unlink(CLIENT_QUEUE) == (mqd_t)-1){
-		perror("Error al eliminar la cola del cliente");
+  if(mq_unlink(cola_client) == (mqd_t)-1){
+		sprintf(out,"Error al eliminar la cola del cliente: %s", strerror(errno));
+		printf("%s\n",out);
+		funcionLog(out);
 		exit(-1);
 	}
 
