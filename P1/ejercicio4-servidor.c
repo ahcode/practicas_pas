@@ -6,8 +6,9 @@
 #include <mqueue.h>
 #include <time.h>
 #include <errno.h>
-#include "common.h"
+#include <getopt.h>
 #include <regex.h>
+#include "common.h"
 
 //Prototipo de funcionn
 void funcionLog(char *);
@@ -17,6 +18,8 @@ FILE *fLog = NULL;
 
 int main(int argc, char **argv)
 {
+	// Cadena de salida
+	char out[300];
 	// Declaración de colas
 	mqd_t mq_to_server;
   mqd_t mq_to_client;
@@ -24,22 +27,57 @@ int main(int argc, char **argv)
 	struct mq_attr attr;
 	// Buffer para intercambiar mensajes
 	char buffer[MAX_SIZE + 1];
-  //char buffer2[12];
-	// flag que indica cuando hay que parar
-	int must_stop = 0;
   // Regex
   regex_t re;
-  regmatch_t pm;
 	// Inicializar los atributos de la cola
 	attr.mq_maxmsg = 10;        // Maximo número de mensajes
 	attr.mq_msgsize = MAX_SIZE; // Maximo tamaño de un mensaje
+	// Opciones
+	int c, hflag=0, option_index = 0;
+	char *rvalue=NULL;
+	static struct option opciones[] =
+	{
+		{"regex", required_argument, 0, 'r'},
+		{"help", no_argument, 0, 'h'},
+		/* Necesario para indicar el final de las opciones */
+		{0, 0, 0, 0}
+	};
+
+	while ((c = getopt_long (argc, argv, "r:h", opciones, &option_index))!=-1){
+		switch (c){
+			case 'r':
+				rvalue=optarg;
+				break;
+			case 'h':
+				hflag=1;
+				break;
+			case '?':
+				break;
+			default:
+				abort ();
+		}
+	}
+
+	if (hflag==1){
+		sprintf(out,"Ayuda");
+		printf("%s\n",out);
+		funcionLog(out);
+		return 0;
+	}
+
+	if (rvalue==NULL){
+		sprintf(out,"Debes indicar un valor para la expresión regular con -r");
+		printf("%s\n",out);
+		funcionLog(out);
+		exit(-1);
+	}
 
   // Inicializar regex
-  if (regcomp(&re,"ola",0)!=0){
+  if (regcomp(&re,rvalue,0)!=0){
       printf("Error al inicializar la expresión regular");
       exit(-1);
   }
-	// Crear la cola de mensajes del servidor
+	// Crear las colas de mensajes
 	mq_to_server = mq_open(SERVER_QUEUE, O_CREAT | O_RDONLY, 0644, &attr);
   if(mq_to_server == (mqd_t)-1 ){
    	perror("Error al abrir la cola del servidor");
@@ -51,7 +89,7 @@ int main(int argc, char **argv)
     exit(-1);
 	}
 
-	do {
+	while(1) {
 		// Número de bytes leidos
 		ssize_t bytes_read;
 
@@ -67,10 +105,10 @@ int main(int argc, char **argv)
 
 		// Comprobar el fin del bucle
 		if (strncmp(buffer, MSG_STOP, strlen(MSG_STOP))==0)
-			must_stop = 1;
+			break;
 		else{
 			printf("Recibido el mensaje: %s\n", buffer);
-      if(regexec(&re, buffer, 1, &pm, 0)==0){
+      if(regexec(&re, buffer, 0, NULL, 0)==0){
         //Empareja
         if(mq_send(mq_to_client, "Empareja", MAX_SIZE, 0) != 0){
     			perror("Error al enviar el mensaje");
@@ -85,7 +123,7 @@ int main(int argc, char **argv)
       }
     }
 	// Iterar hasta que llegue el código de salida
-	} while (!must_stop);
+	}
 
   // Liberar regex
   regfree(&re);

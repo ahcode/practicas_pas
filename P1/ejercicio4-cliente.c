@@ -60,6 +60,9 @@ int main(int argc, char **argv)
 		}
     // Cerrar la cadena
 		buffer2[bytes_read] = '\0';
+		// Comprobar salida
+		if (strncmp(buffer2, MSG_STOP, strlen(MSG_STOP))==0)
+			break;
     // Imprimir respuesta
     printf("%s\n",buffer2);
 	}
