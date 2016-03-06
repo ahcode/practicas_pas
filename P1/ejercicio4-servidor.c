@@ -56,14 +56,17 @@ int main(int argc, char **argv)
 		sprintf(out,"No puedo asociar la señal SIGINT al manejador!");
 		printf("%s\n",out);
 		funcionLog(out);
+		exit(-1);
 	}if (signal(SIGHUP, m_salir) == SIG_ERR){
 		sprintf(out,"No puedo asociar la señal SIGHUP al manejador!");
 		printf("%s\n",out);
 		funcionLog(out);
+		exit(-1);
 	}if (signal(SIGTERM, m_salir) == SIG_ERR){
 		sprintf(out,"No puedo asociar la señal SIGTERM al manejador!");
 		printf("%s\n",out);
 		funcionLog(out);
+		exit(-1);
 	}
 
 	while ((c = getopt_long (argc, argv, "r:h", opciones, &option_index))!=-1){
@@ -139,7 +142,7 @@ int main(int argc, char **argv)
 			sprintf(out,"Error al recibir el mensaje: %s", strerror(errno));
 			printf("%s\n",out);
 			funcionLog(out);
-			exit(-1);
+			salir();
 		}
 		// Cerrar la cadena
 		buffer[bytes_read] = '\0';
@@ -157,7 +160,7 @@ int main(int argc, char **argv)
     			sprintf(out,"Error al enviar el mensaje: %s", strerror(errno));
 					printf("%s\n",out);
 					funcionLog(out);
-    			exit(-1);
+    			salir();
     		}
       }else{
         //No Empareja
@@ -165,7 +168,7 @@ int main(int argc, char **argv)
     			sprintf(out,"Error al enviar el mensaje: %s", strerror(errno));
 					printf("%s\n",out);
 					funcionLog(out);
-    			exit(-1);
+    			salir();
     		}
       }
     }
@@ -215,36 +218,39 @@ void funcionLog(char *mensaje)
 }
 
 void salir(){
-	char out[50];
+	char out[300];
 
 	// Liberar regex
 	regfree(&re);
+
+	// Enviar salida al cliente
+	if(mq_send(mq_to_client, MSG_STOP, MAX_SIZE, 0) != 0){
+		sprintf(out,"Error al enviar el mensaje: %s", strerror(errno));
+		printf("%s\n",out);
+		funcionLog(out);
+	}
 
 	// Cerrar las colas
 	if(mq_close(mq_to_server) == (mqd_t)-1){
 		sprintf(out,"Error al cerrar la cola del servidor: %s", strerror(errno));
 		printf("%s\n",out);
 		funcionLog(out);
-		exit(-1);
 	}
 	if(mq_close(mq_to_client) == (mqd_t)-1){
 		sprintf(out,"Error al cerrar la cola del cliente: %s", strerror(errno));
 		printf("%s\n",out);
 		funcionLog(out);
-		exit(-1);
 	}
 	// Eliminar las colas
 	if(mq_unlink(cola_server) == (mqd_t)-1){
 		sprintf(out,"Error al eliminar la cola del servidor: %s", strerror(errno));
 		printf("%s\n",out);
 		funcionLog(out);
-		exit(-1);
 	}
 	if(mq_unlink(cola_client) == (mqd_t)-1){
 		sprintf(out,"Error al eliminar la cola del cliente: %s", strerror(errno));
 		printf("%s\n",out);
 		funcionLog(out);
-		exit(-1);
 	}
 
 	//Cierre del fichero de Log
@@ -254,7 +260,7 @@ void salir(){
 }
 
 void m_salir(int signal){
-	char msg[30];
+	char msg[50];
 	sprintf(msg,"Saliendo del programa tras recibir una señal: %d",signal);
 	funcionLog(msg);
   salir();

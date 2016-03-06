@@ -35,14 +35,17 @@ int main(int argc, char **argv)
 		sprintf(out,"No puedo asociar la señal SIGINT al manejador!");
 		printf("%s\n",out);
 		funcionLog(out);
+		exit(-1);
 	}if (signal(SIGHUP, m_salir) == SIG_ERR){
 		sprintf(out,"No puedo asociar la señal SIGHUP al manejador!");
 		printf("%s\n",out);
 		funcionLog(out);
+		exit(-1);
 	}if (signal(SIGTERM, m_salir) == SIG_ERR){
 		sprintf(out,"No puedo asociar la señal SIGTERM al manejador!");
 		printf("%s\n",out);
 		funcionLog(out);
+		exit(-1);
 	}
 	// Abrir las colas
 	usuario = getlogin();
@@ -84,7 +87,7 @@ int main(int argc, char **argv)
 			sprintf(out,"Error al enviar el mensaje: %s", strerror(errno));
 			printf("%s\n",out);
 			funcionLog(out);
-			exit(-1);
+			salir();
 		}
     // Comprobar salida
     if(!strncmp(buffer, MSG_STOP, strlen(MSG_STOP)))
@@ -98,7 +101,7 @@ int main(int argc, char **argv)
 			sprintf(out,"Error al recibir el mensaje: %s", strerror(errno));
 			printf("%s\n",out);
 			funcionLog(out);
-			exit(-1);
+			salir();
 		}
     // Cerrar la cadena
 		buffer2[bytes_read] = '\0';
@@ -152,20 +155,24 @@ void funcionLog(char *mensaje)
 }
 
 void salir(){
-	char out[50];
+	char out[300];
 
+	// Enviar salida al servidor
+	if(mq_send(mq_to_server, MSG_STOP, MAX_SIZE, 0) != 0){
+		sprintf(out,"Error al enviar el mensaje: %s", strerror(errno));
+		printf("%s\n",out);
+		funcionLog(out);
+	}
 	// Cerrar la cola del servidor
 	if(mq_close(mq_to_server) == (mqd_t)-1){
 		sprintf(out,"Error al cerrar la cola del servidor: %s", strerror(errno));
 		printf("%s\n",out);
 		funcionLog(out);
-		exit(-1);
 	}
   if(mq_close(mq_to_client) == (mqd_t)-1){
 		sprintf(out,"Error al cerrar la cola del cliente: %s", strerror(errno));
 		printf("%s\n",out);
 		funcionLog(out);
-		exit(-1);
 	}
 
 	fclose(fLog);
@@ -174,7 +181,7 @@ void salir(){
 }
 
 void m_salir(int signal){
-	char msg[30];
+	char msg[50];
 	sprintf(msg,"Saliendo del programa tras recibir una señal: %d",signal);
 	funcionLog(msg);
   salir();
