@@ -9,31 +9,35 @@
 #include <getopt.h>
 #include <regex.h>
 #include <unistd.h>
+#include <signal.h>
 #include "common.h"
 
-//Prototipo de funcionn
+//Prototipo de funciones
 void funcionLog(char *);
+void salir();
+void m_salir(int signal);
+
 // Apuntador al fichero de log (se utilizará en el ejercicio resumen)
 FILE *fLog = NULL;
-
+// Declaración de colas
+mqd_t mq_to_server;
+mqd_t mq_to_client;
+// Nombre de colas
+char cola_server[60];
+char cola_client[60];
+// Regex
+regex_t re;
 
 int main(int argc, char **argv)
 {
 	// Cadena de salida
 	char out[300];
-	// Declaración de colas
-	mqd_t mq_to_server;
-  mqd_t mq_to_client;
-	// Nombre de colas
+	// Nombre de usuario
 	char *usuario;
-	char cola_server[60];
-	char cola_client[60];
 	// Atributos de las colas
 	struct mq_attr attr;
 	// Buffer para intercambiar mensajes
 	char buffer[MAX_SIZE + 1];
-  // Regex
-  regex_t re;
 	// Inicializar los atributos de la cola
 	attr.mq_maxmsg = 10;        // Maximo número de mensajes
 	attr.mq_msgsize = MAX_SIZE; // Maximo tamaño de un mensaje
@@ -47,6 +51,20 @@ int main(int argc, char **argv)
 		/* Necesario para indicar el final de las opciones */
 		{0, 0, 0, 0}
 	};
+	// Manejadores de señales
+	if (signal(SIGINT, m_salir) == SIG_ERR){
+		sprintf(out,"No puedo asociar la señal SIGINT al manejador!");
+		printf("%s\n",out);
+		funcionLog(out);
+	}if (signal(SIGHUP, m_salir) == SIG_ERR){
+		sprintf(out,"No puedo asociar la señal SIGHUP al manejador!");
+		printf("%s\n",out);
+		funcionLog(out);
+	}if (signal(SIGTERM, m_salir) == SIG_ERR){
+		sprintf(out,"No puedo asociar la señal SIGTERM al manejador!");
+		printf("%s\n",out);
+		funcionLog(out);
+	}
 
 	while ((c = getopt_long (argc, argv, "r:h", opciones, &option_index))!=-1){
 		switch (c){
@@ -154,35 +172,7 @@ int main(int argc, char **argv)
 	// Iterar hasta que llegue el código de salida
 	}
 
-  // Liberar regex
-  regfree(&re);
-
-	// Cerrar la cola del servidor
-	if(mq_close(mq_to_server) == (mqd_t)-1){
-		sprintf(out,"Error al cerrar la cola del servidor: %s", strerror(errno));
-		printf("%s\n",out);
-		funcionLog(out);
-		exit(-1);
-	}
-  if(mq_close(mq_to_client) == (mqd_t)-1){
-    sprintf(out,"Error al cerrar la cola del cliente: %s", strerror(errno));
-		printf("%s\n",out);
-		funcionLog(out);
-    exit(-1);
-  }
-	// Eliminar la cola del servidor
-	if(mq_unlink(cola_server) == (mqd_t)-1){
-		sprintf(out,"Error al eliminar la cola del servidor: %s", strerror(errno));
-		printf("%s\n",out);
-		funcionLog(out);
-		exit(-1);
-	}
-  if(mq_unlink(cola_client) == (mqd_t)-1){
-		sprintf(out,"Error al eliminar la cola del cliente: %s", strerror(errno));
-		printf("%s\n",out);
-		funcionLog(out);
-		exit(-1);
-	}
+	salir();
 
 	return 0;
 }
@@ -219,6 +209,53 @@ void funcionLog(char *mensaje)
 	if ( resultado < 0)
 		perror("Error escribiendo en el fichero de log");
 
+	//El cierre del fichero se gestiona en la función salir()
+	//fclose(fLog);
+	//fLog=NULL;
+}
+
+void salir(){
+	char out[50];
+
+	// Liberar regex
+	regfree(&re);
+
+	// Cerrar las colas
+	if(mq_close(mq_to_server) == (mqd_t)-1){
+		sprintf(out,"Error al cerrar la cola del servidor: %s", strerror(errno));
+		printf("%s\n",out);
+		funcionLog(out);
+		exit(-1);
+	}
+	if(mq_close(mq_to_client) == (mqd_t)-1){
+		sprintf(out,"Error al cerrar la cola del cliente: %s", strerror(errno));
+		printf("%s\n",out);
+		funcionLog(out);
+		exit(-1);
+	}
+	// Eliminar las colas
+	if(mq_unlink(cola_server) == (mqd_t)-1){
+		sprintf(out,"Error al eliminar la cola del servidor: %s", strerror(errno));
+		printf("%s\n",out);
+		funcionLog(out);
+		exit(-1);
+	}
+	if(mq_unlink(cola_client) == (mqd_t)-1){
+		sprintf(out,"Error al eliminar la cola del cliente: %s", strerror(errno));
+		printf("%s\n",out);
+		funcionLog(out);
+		exit(-1);
+	}
+
+	//Cierre del fichero de Log
 	fclose(fLog);
-	fLog=NULL;
+
+	exit(EXIT_SUCCESS);
+}
+
+void m_salir(int signal){
+	char msg[30];
+	sprintf(msg,"Saliendo del programa tras recibir una señal: %d",signal);
+	funcionLog(msg);
+  salir();
 }

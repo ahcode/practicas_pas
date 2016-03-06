@@ -7,10 +7,16 @@
 #include <time.h>
 #include <errno.h>
 #include <unistd.h>
+#include <signal.h>
 #include "common.h"
 
-//Prototipo de funcion
+//Prototipo de funciones
 void funcionLog(char *);
+void salir();
+void m_salir(int signal);
+// Colas
+mqd_t mq_to_server;
+mqd_t mq_to_client;
 // Apuntador al fichero de log (se utilizará en el ejercicio resumen)
 FILE *fLog = NULL;
 
@@ -21,12 +27,23 @@ int main(int argc, char **argv)
 	// Nombre cola
 	char *usuario;
 	char cola[60];
-	// Colas
-	mqd_t mq_to_server;
-  mqd_t mq_to_client;
 	// Buffer para intercambiar mensajes
 	char buffer[MAX_SIZE];
   char buffer2[MAX_SIZE+1];
+	// Manejadores de señales
+	if (signal(SIGINT, m_salir) == SIG_ERR){
+		sprintf(out,"No puedo asociar la señal SIGINT al manejador!");
+		printf("%s\n",out);
+		funcionLog(out);
+	}if (signal(SIGHUP, m_salir) == SIG_ERR){
+		sprintf(out,"No puedo asociar la señal SIGHUP al manejador!");
+		printf("%s\n",out);
+		funcionLog(out);
+	}if (signal(SIGTERM, m_salir) == SIG_ERR){
+		sprintf(out,"No puedo asociar la señal SIGTERM al manejador!");
+		printf("%s\n",out);
+		funcionLog(out);
+	}
 	// Abrir las colas
 	usuario = getlogin();
 	if (usuario == NULL){
@@ -87,26 +104,13 @@ int main(int argc, char **argv)
 		buffer2[bytes_read] = '\0';
 		// Comprobar salida
 		if (strncmp(buffer2, MSG_STOP, strlen(MSG_STOP))==0)
-			break;
+			salir();
     // Imprimir respuesta
     sprintf(out,"%s",buffer2);
 		printf("%s\n",out);
 		funcionLog(out);
 	}
 
-	// Cerrar la cola del servidor
-	if(mq_close(mq_to_server) == (mqd_t)-1){
-		sprintf(out,"Error al cerrar la cola del servidor: %s", strerror(errno));
-		printf("%s\n",out);
-		funcionLog(out);
-		exit(-1);
-	}
-  if(mq_close(mq_to_client) == (mqd_t)-1){
-		sprintf(out,"Error al cerrar la cola del cliente: %s", strerror(errno));
-		printf("%s\n",out);
-		funcionLog(out);
-		exit(-1);
-	}
 	return 0;
 }
 
@@ -142,6 +146,36 @@ void funcionLog(char *mensaje)
 	if ( resultado < 0)
 		perror("Error escribiendo en el fichero de log");
 
+	//El cierre del fichero se gestiona en la función salir()
+	//fclose(fLog);
+	//fLog=NULL;
+}
+
+void salir(){
+	char out[50];
+
+	// Cerrar la cola del servidor
+	if(mq_close(mq_to_server) == (mqd_t)-1){
+		sprintf(out,"Error al cerrar la cola del servidor: %s", strerror(errno));
+		printf("%s\n",out);
+		funcionLog(out);
+		exit(-1);
+	}
+  if(mq_close(mq_to_client) == (mqd_t)-1){
+		sprintf(out,"Error al cerrar la cola del cliente: %s", strerror(errno));
+		printf("%s\n",out);
+		funcionLog(out);
+		exit(-1);
+	}
+
 	fclose(fLog);
-	fLog=NULL;
+
+	exit(EXIT_SUCCESS);
+}
+
+void m_salir(int signal){
+	char msg[30];
+	sprintf(msg,"Saliendo del programa tras recibir una señal: %d",signal);
+	funcionLog(msg);
+  salir();
 }
