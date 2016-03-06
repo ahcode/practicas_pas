@@ -16,6 +16,7 @@
 void funcionLog(char *);
 void salir();
 void m_salir(int signal);
+void ayuda();
 
 // Apuntador al fichero de log (se utilizará en el ejercicio resumen)
 FILE *fLog = NULL;
@@ -94,9 +95,7 @@ int main(int argc, char **argv)
 	}
 
 	if (hflag==1){
-		sprintf(out,"Ayuda");
-		printf("%s\n",out);
-		funcionLog(out);
+		ayuda();
 		return 0;
 	}
 
@@ -264,7 +263,7 @@ void salir(){
 		printf("%s\n",out);
 		funcionLog(out);
 	}
-	
+
 	funcionLog("Saliendo del programa");
 
 	//Cierre del fichero de Log
@@ -278,4 +277,23 @@ void m_salir(int signal){
 	sprintf(msg,"Recibida señal de salida: %d",signal);
 	funcionLog(msg);
   salir();
+}
+
+void ayuda(){
+	char out[60];
+	sprintf(out,"Uso del programa: ejercicio4-servidor [opciones]");
+	printf("%s\n",out);
+	funcionLog(out);
+	sprintf(out,"Opciones:");
+	printf("%s\n",out);
+	funcionLog(out);
+	sprintf(out,"-h,\t--help\t\tImprimir esta ayuda");
+	printf("%s\n",out);
+	funcionLog(out);
+	sprintf(out,"-r,\t--regex=EXPR\tExpresión regular a utilizar");
+	printf("%s\n",out);
+	funcionLog(out);
+	sprintf(out,"-t,\t--time\t\tCronómetro de expiración");
+	printf("%s\n",out);
+	funcionLog(out);
 }
