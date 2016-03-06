@@ -43,11 +43,12 @@ int main(int argc, char **argv)
 	attr.mq_msgsize = MAX_SIZE; // Maximo tamaño de un mensaje
 	// Opciones
 	int c, hflag=0, option_index = 0;
-	char *rvalue=NULL;
+	char *rvalue=NULL, *tvalue=NULL;
 	static struct option opciones[] =
 	{
 		{"regex", required_argument, 0, 'r'},
 		{"help", no_argument, 0, 'h'},
+		{"time", required_argument, 0, 't'},
 		/* Necesario para indicar el final de las opciones */
 		{0, 0, 0, 0}
 	};
@@ -67,15 +68,23 @@ int main(int argc, char **argv)
 		printf("%s\n",out);
 		funcionLog(out);
 		exit(-1);
+	}if (signal(SIGALRM, m_salir) == SIG_ERR){
+		sprintf(out,"No puedo asociar la señal SIGALRM al manejador!");
+		printf("%s\n",out);
+		funcionLog(out);
+		exit(-1);
 	}
 
-	while ((c = getopt_long (argc, argv, "r:h", opciones, &option_index))!=-1){
+	while ((c = getopt_long (argc, argv, "r:ht:", opciones, &option_index))!=-1){
 		switch (c){
 			case 'r':
 				rvalue=optarg;
 				break;
 			case 'h':
 				hflag=1;
+				break;
+			case 't':
+				tvalue=optarg;
 				break;
 			case '?':
 				break;
@@ -97,6 +106,9 @@ int main(int argc, char **argv)
 		funcionLog(out);
 		exit(-1);
 	}
+
+	if (tvalue!=NULL)
+		alarm(atoi(tvalue));
 
   // Inicializar regex
   if (regcomp(&re,rvalue,0)!=0){
@@ -252,6 +264,8 @@ void salir(){
 		printf("%s\n",out);
 		funcionLog(out);
 	}
+	
+	funcionLog("Saliendo del programa");
 
 	//Cierre del fichero de Log
 	fclose(fLog);
@@ -261,7 +275,7 @@ void salir(){
 
 void m_salir(int signal){
 	char msg[50];
-	sprintf(msg,"Saliendo del programa tras recibir una señal: %d",signal);
+	sprintf(msg,"Recibida señal de salida: %d",signal);
 	funcionLog(msg);
   salir();
 }

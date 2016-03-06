@@ -175,6 +175,8 @@ void salir(){
 		funcionLog(out);
 	}
 
+	funcionLog("Saliendo del programa");
+
 	fclose(fLog);
 
 	exit(EXIT_SUCCESS);
