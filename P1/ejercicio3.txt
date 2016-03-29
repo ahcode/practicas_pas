@@ -32,3 +32,20 @@
 [2016-03-05, 11:57:10] ==> status de errno=10, definido como No child processes
   //El padre espera al hijo y finaliza su ejecución
 //FIN DE LA EJECUCIÓN//
+[2016-03-06, 16:00:40] ==> [PADRE] mi PID es 9392 y el PID de mi hijo es 9393
+[2016-03-06, 16:00:40] ==> [HIJO] mi PID es 9393 y mi PPID es 9392
+[2016-03-06, 16:00:40] ==> [PADRE] escribimos el número aleatorio 587 en la tubería
+[2016-03-06, 16:00:40] ==> [HIJO] leemos el número aleatorio 587 de la tubería
+[2016-03-06, 16:00:41] ==> [PADRE] escribimos el número aleatorio 1100 en la tubería
+[2016-03-06, 16:00:41] ==> [HIJO] leemos el número aleatorio 1100 de la tubería
+[2016-03-06, 16:00:42] ==> [PADRE] escribimos el número aleatorio 1015 en la tubería
+[2016-03-06, 16:00:42] ==> [HIJO] leemos el número aleatorio 1015 de la tubería
+[2016-03-06, 16:00:43] ==> [PADRE] escribimos el número aleatorio 4401 en la tubería
+[2016-03-06, 16:00:43] ==> [HIJO] leemos el número aleatorio 4401 de la tubería
+[2016-03-06, 16:00:43] ==> [PADRE] escribimos el número aleatorio 3270 en la tubería
+[2016-03-06, 16:00:43] ==> [HIJO] leemos el número aleatorio 3270 de la tubería
+[2016-03-06, 16:00:43] ==> [HIJO] tubería cerrada. Salgo...
+[2016-03-06, 16:00:44] ==> [PADRE] tubería cerrada
+[2016-03-06, 16:00:44] ==> Hijo PID:9393 finalizado, estado=0
+[2016-03-06, 16:00:44] ==> No hay más hijos que esperar
+[2016-03-06, 16:00:44] ==> status de errno=10, definido como No child processes
