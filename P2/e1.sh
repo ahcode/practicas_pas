@@ -14,14 +14,11 @@ fi
 
 for x in $(find $1 -type f -size +$tam'c')
 do
-	echo -n "$(dirname $x);$(basename $x);$(stat $x -c "%s");$(stat $x -c "%i");$(stat $x -c "%A");" >> temp.txt
+	echo -n "$(dirname $x);$(basename $x);$(stat $x -c "%s");$(stat $x -c "%i");$(stat $x -c "%A");"
 	if [ -x $x ];
 	then
-		echo "1" >> temp.txt
+		echo "1"
 	else
-		echo "0" >> temp.txt
+		echo "0"
 	fi
-done
-
-sort -n -t ';' -k 3 < temp.txt
-rm temp.txt
+done | sort -n -t ';' -k 3
