@@ -5,7 +5,13 @@ then
 	exit 1
 fi
 
-if [ $# -eq 1 ]
+if [ ! -d $1 ];
+then
+	echo "El directorio $1 no existe"
+	exit 1
+fi
+
+if [ $# -eq 1 ];
 then
 	tam=0
 else
