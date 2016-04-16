@@ -52,7 +52,7 @@ echo "Introduzca el directorio donde copiar los ejecutables [\$HOME/bin]: "
 read -t5 ejecutables
 if [ -z "$ejecutables" ];
 then
-  ejecutables=$HOME/practica/bin
+  ejecutables=$HOME/bin
 fi
 if [ ! -d $ejecutables ];
 then
@@ -63,7 +63,7 @@ echo "Introduzca el directorio donde copiar las librerías [\$HOME/lib]: "
 read -t5 librerias
 if [ -z "$librerias" ];
 then
-  librerias=$HOME/practica/lib
+  librerias=$HOME/lib
 fi
 if [ ! -d $librerias ];
 then
@@ -74,7 +74,7 @@ echo "Introduzca el directorio donde copiar las imágenes [\$HOME/img]: "
 read -t5 imagenes
 if [ -z "$imagenes" ];
 then
-  imagenes=$HOME/practica/img
+  imagenes=$HOME/img
 fi
 if [ ! -d $imagenes ];
 then
@@ -85,7 +85,7 @@ echo "Introduzca el directorio donde copiar las cabeceras [\$HOME/include]: "
 read -t5 cabeceras
 if [ -z "$cabeceras" ];
 then
-  cabeceras=$HOME/practica/include
+  cabeceras=$HOME/include
 fi
 if [ ! -d $cabeceras ];
 then
