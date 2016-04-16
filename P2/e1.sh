@@ -27,4 +27,4 @@ do
 	else
 		echo "0"
 	fi
-done | sort -n -t ';' -k 3
+done | sort -r -t ';' -k 2
