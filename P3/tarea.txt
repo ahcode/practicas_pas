@@ -1,3 +1,6 @@
+hola
+
+holaaaaa
 
 Informe de rendimiento:
 Este informe recoge todas las posibles formas de encontrar los patrones de series temporales de series.tdf que nos interesan.
