@@ -1,4 +1,9 @@
 #!/bin/bash
+if [ ! -e "$1" ];
+then
+	echo "El fichero $1 no existe"
+	exit 1
+fi
 echo "Listado de archivos ocultos del directorio $HOME"
 ls -a $HOME | grep '^\..*'
 echo "===="

@@ -1,3 +1,13 @@
+#!/bin/bash
+if [ ! -d "$1" ];
+then
+	echo "El directorio $1 no existe"
+	exit 1
+elif [ ! -d "$1/init.d" ];
+then
+  echo "El dicrectorio $1 no es una carpeta de scripts de arranque (no existe $1/init.d/)"
+  exit 1
+fi
 echo "***************************"
 let dir=0
 let sym=0

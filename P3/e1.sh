@@ -1,4 +1,9 @@
 #!/bin/bash
+if [ ! -e "$1" ];
+then
+	echo "El fichero $1 no existe"
+	exit 1
+fi
 echo "****************************"
 echo "1) Títulos de las series:"
 grep -E '[0-9]+\. ' $1
@@ -16,6 +21,8 @@ echo "5) Eliminar líneas vacías:"
 grep -v '^$' $1
 echo "****************************"
 echo "6) Contar cuantas series produce cada cadena:"
+#Lo veía más claro con sort -u y un bucle, se podría hacer más corto con uniq -c y sed sin necesidad de bucle
+#pero en este ejercicio creo que se debe utilizar solo grep. (En el ej 6 lo hago con uniq -c y sed)
 for x in $(grep '^\* .* \*' $1 | grep -o '[[:alpha:]]*' | sort -u)
 do
   n=$(grep -c $x $1)
